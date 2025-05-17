@@ -11,6 +11,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import datetime
 import re
+import json
 
 # 環境変数の読み込み
 load_dotenv()
@@ -71,9 +72,17 @@ def get_google_sheets_service():
     Google Sheets APIのサービスアカウント認証を行い、サービスオブジェクトを返す
     """
     try:
-        # サービスアカウントの認証情報を読み込む
-        credentials = service_account.Credentials.from_service_account_file(
-            'credentials.json', scopes=SCOPES)
+        # 環境変数から認証情報を取得
+        credentials_json = os.getenv('GOOGLE_CREDENTIALS')
+        if not credentials_json:
+            raise ValueError("GOOGLE_CREDENTIALS environment variable is not set")
+        
+        # JSON文字列を辞書に変換
+        credentials_info = json.loads(credentials_json)
+        
+        # サービスアカウントの認証情報を作成
+        credentials = service_account.Credentials.from_service_account_info(
+            credentials_info, scopes=SCOPES)
         
         return build('sheets', 'v4', credentials=credentials)
     
